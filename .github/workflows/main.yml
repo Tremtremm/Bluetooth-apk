@@ -14,7 +14,8 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Unzip Project
-        run: unzip Ehehehehehe.zip
+        run: |
+          unzip -o Ehehehehehe.zip || true
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -22,16 +23,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Grant Execute Permission
-        run: cd BluetoothIsimDegistirici && chmod +x gradlew || true
-
-      - name: Build APK
+      - name: Make gradlew executable
         run: |
-          cd BluetoothIsimDegistirici
-          ./gradlew assembleDebug || gradle assembleDebug
+          chmod +x ./BluetoothIsimDegistirici/gradlew || chmod +x ./gradlew || true
+
+      - name: Build with Gradle
+        run: |
+          if [ -f "./BluetoothIsimDegistirici/gradlew" ]; then
+            cd BluetoothIsimDegistirici && ./gradlew assembleDebug --no-daemon
+          elif [ -f "./gradlew" ]; then
+            ./gradlew assembleDebug --no-daemon
+          else
+            gradle assembleDebug
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v3
         with:
-          name: bluetooth-app-apk
-          path: BluetoothIsimDegistirici/app/build/outputs/apk/debug/*.apk
+          name: BluetoothIsimDegistirici-APK
+          path: "**/outputs/apk/debug/*.apk"
